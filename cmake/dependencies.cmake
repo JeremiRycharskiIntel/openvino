@@ -92,7 +92,7 @@ endif()
 
 ## TBB package
 unset(_ov_download_tbb_done CACHE)
-
+set(THIRDPARTY_SERVER_PATH "https://download.01.org/opencv/master/openvinotoolkit")
 #
 # The function downloads prebuilt TBB package
 # NOTE: the function should be used if system TBB is not found
@@ -151,6 +151,9 @@ function(ov_download_tbb)
     if(EXISTS "${TBBROOT}/lib/cmake/TBB/TBBConfig.cmake")
         # oneTBB case
         update_deps_cache(TBB_DIR "${TBBROOT}/lib/cmake/TBB" "Path to TBB cmake folder")
+    elseif(EXISTS "${TBBROOT}/lib/cmake/tbb/TBBConfig.cmake")
+        # oneTBB release package version less than 2021.6.0
+        update_deps_cache(TBB_DIR "${TBBROOT}/lib/cmake/tbb" "Path to TBB cmake folder")
     elseif(EXISTS "${TBBROOT}/lib64/cmake/TBB/TBBConfig.cmake")
         # 64-bits oneTBB case
         update_deps_cache(TBB_DIR "${TBBROOT}/lib64/cmake/TBB" "Path to TBB cmake folder")
@@ -217,18 +220,12 @@ endfunction()
 if(ENABLE_OPENCV)
     reset_deps_cache(OpenCV_DIR)
 
-    set(OPENCV_VERSION "4.5.2")
-    set(OPENCV_BUILD "076")
+    set(IE_PATH_TO_DEPS "http://releases.ti.intel.com/Temp/opencv")
+    set(OPENCV_VERSION "4.5.5")
+    set(OPENCV_BUILD "131")
     set(OPENCV_BUILD_YOCTO "772")
 
     if(AARCH64)
-        if(DEFINED ENV{THIRDPARTY_SERVER_PATH})
-            set(IE_PATH_TO_DEPS "$ENV{THIRDPARTY_SERVER_PATH}")
-        elseif(DEFINED THIRDPARTY_SERVER_PATH)
-            set(IE_PATH_TO_DEPS "${THIRDPARTY_SERVER_PATH}")
-        else()
-            message(WARNING "OpenCV is not found!")
-        endif()
 
         if(DEFINED IE_PATH_TO_DEPS)
             set(OPENCV_SUFFIX "yocto_kmb")
@@ -250,7 +247,7 @@ if(ENABLE_OPENCV)
                     TARGET_PATH "${TEMP}/opencv_${OPENCV_VERSION}/opencv"
                     ENVIRONMENT "OpenCV_DIR"
                     VERSION_REGEX ".*_([0-9]+.[0-9]+.[0-9]+).*"
-                    SHA256 "a14f872e6b63b6ac12c7ff47fa49e578d14c14433b57f5d85ab5dd48a079938c")
+                    SHA256 "f871e3dc3f3850ce2121fccef1a056bf47de8ec692b8e70e4711382dadae7752")
         elseif(APPLE AND X86_64)
             RESOLVE_DEPENDENCY(OPENCV
                     ARCHIVE_MAC "opencv/opencv_${OPENCV_VERSION}-${OPENCV_BUILD}_osx.txz"
@@ -285,11 +282,11 @@ if(ENABLE_OPENCV)
                 message(FATAL_ERROR "OpenCV is not available on current platform (${LINUX_OS_NAME})")
             endif()
             RESOLVE_DEPENDENCY(OPENCV
-                    ARCHIVE_LIN "opencv/opencv_${OPENCV_VERSION}-${OPENCV_BUILD}_${OPENCV_SUFFIX}.txz"
-                    TARGET_PATH "${TEMP}/opencv_${OPENCV_VERSION}_${OPENCV_SUFFIX}/opencv"
+                    ARCHIVE_LIN "opencv/opencv_${OPENCV_VERSION}-${OPENCV_BUILD}.txz"
+                    TARGET_PATH "${TEMP}/opencv_${OPENCV_VERSION}/opencv"
                     ENVIRONMENT "OpenCV_DIR"
                     VERSION_REGEX ".*_([0-9]+.[0-9]+.[0-9]+).*"
-                    SHA256 ${OPENCV_HASH})
+                    SHA256 "07b72209440bf2140d4a58d496ffc35bb4488e7bca231bdc04c335a495006421")
         endif()
     endif()
 
@@ -314,8 +311,8 @@ if(ENABLE_INTEL_GNA)
             GNA_LIB_DIR
             libGNA_INCLUDE_DIRS
             libGNA_LIBRARIES_BASE_PATH)
-        set(GNA_VERSION "03.00.00.1455.2")
-        set(GNA_HASH "e52785d3f730fefb4e794bb7ab40c8676537ef2f7c69c5b4bb89a5d3cc0bbe60")
+        set(GNA_VERSION "03.00.00.1455.0")
+        set(GNA_HASH "99891696269d8fa10116c96e6b7bda4362736881f0df8df8b56c751ee18e5820")
 
         set(FILES_TO_EXTRACT_LIST gna_${GNA_VERSION}/include)
         if(WIN32)
